@@ -1,8 +1,8 @@
 const connection = require('../database/connection')
 
 module.exports = {
-    async index(Request, Response) {
-        const { page = 1 } = Request.query  //paginacao
+    async index(request, response) {
+        const { page = 1 } = request.query  //paginacao
 
         const [count] = await connection('incidents').count()
         console.log(count)
@@ -21,14 +21,14 @@ module.exports = {
         
         ])
 
-        Response.header('X-Total-Count', count['count(*)'])
+        response.header('X-Total-Count', count['count(*)'])
 
-        return Response.json(incidents)
+        return response.json(incidents)
     },
     
-    async create(Request , Response) {
-        const { title, description, value } = Request.body
-        const ong_id = Request.headers.authorization
+    async create(request , response) {
+        const { title, description, value } = request.body
+        const ong_id = request.headers.authorization
 
         const [id] = await connection('incidents').insert({
             title,
@@ -37,12 +37,12 @@ module.exports = {
             ong_id,
         })
 
-        return Response.json({ id })
+        return response.json({ id })
     },
 
-    async delete(Request, Response) {
-        const { id } = Request.params
-        const ong_id = Request.headers.authorization
+    async delete(request, response) {
+        const { id } = request.params
+        const ong_id = request.headers.authorization
 
         const incident = await connection('incidents')
             .where('id', id)
@@ -50,11 +50,11 @@ module.exports = {
             .first()
 
         if (incident.ong_id !== ong_id ) {
-            return Response.status(401).json({ error: 'Operation not permitted.'})
+            return response.status(401).json({ error: 'Operation not permitted.'})
         }
 
         await connection('incidents').where('id', id).delete()
 
-        return Response.status(204).send()
+        return response.status(204).send()
     }
 }
